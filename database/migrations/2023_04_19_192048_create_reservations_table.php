@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('boardroom_id')->references('id')->on('boardrooms');
             $table->foreignId('user_id')->references('id')->on('users');
             $table->date('date');
-            $table->time('time');
+            $table->time('start');
+            $table->time('end');
             $table->timestamps();
         });
     }
