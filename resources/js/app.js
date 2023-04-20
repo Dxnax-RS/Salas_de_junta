@@ -1,7 +1,9 @@
 import './bootstrap';
 import '../css/app.scss'
-import * as bootstrap from 'bootstrap'
-import { createApp } from 'vue';
-import Welcome from "./welcome.vue";
+import { createApp } from 'vue/dist/vue.esm-bundler';
+import Welcome from "./Welcome.vue";
 
-createApp(Welcome).mount("#app");
+const app = createApp({});
+
+app.component('welcome', Welcome);
+app.mount('#app');
