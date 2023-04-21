@@ -24,7 +24,7 @@
                 <div class="input-group mb-3">
                     <input type="date" class="form-control" v-model="userDate">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button">search</button>
+                        <button class="btn btn-outline-secondary" type="button" @click="markSchedule()">search</button>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@ export default {
             boardrooms: [],
             hours: [
                 {
-                    start: '08:00 ',
+                    start: '08:00',
                     end: '08:30',
                     id: 1
                 },
@@ -135,25 +135,103 @@ export default {
                     id: 18
                 },
             ],
-            userDate: []
+            userDate: '',
+            reservationsForDay: [],
+            idStart: -1,
+            idEnd: -1,
         }
     },
     methods: {
         async getDate(){
             axios.get('/api/date')
                 .then((response) => {
-                    this.date = response
-                })
+                    this.date = response;
+                });
         },
         async getBoardrooms(){
             axios.get('/api/boardrooms')
                 .then((response) => {
-                    this.boardrooms = response
-                })
-        }
+                    this.boardrooms = response;
+                });
+        },
+        async getReservation(){
+            let response
+            return response.data
+        },
+        async markSchedule(){
+            if(this.userDate === "")
+            {
+                return;
+            }
+
+            let reservations = await axios.get('/api/reservation/'+this.userDate);
+            this.reservationsForDay = reservations
+            reservations.data.forEach(reser => {
+                
+                let boardroomName
+
+                this.boardrooms.data.forEach(board => {
+                    if(board.id == reser.boardroom_id)
+                    {
+                        boardroomName = board.name;
+                    }
+                });
+                
+                console.log(reser.start.substring(0, 5));
+
+                this.hours.forEach(hour => {
+                    if(hour.start === reser.start.substring(0, 5))
+                    {
+                        this.idStart = hour.id;
+                    }
+                    if(hour.end === reser.end.substring(0, 5))
+                    {
+                        this.idEnd = hour.id;
+                    }
+                });
+
+                console.log(this.idEnd)
+
+                for(let i = this.idStart; i <= this.idEnd; i++)
+                {
+                    console.log(`${boardroomName}${i}`)
+                    document.getElementById(boardroomName+i).className = 'table-danger'
+                    //this.$refs[''+boardroomName+''+i][0].element.classList.value = 'table-danger';
+                }
+            });
+            /*for(let reser in reservations.data)
+            {
+                let boardroomName
+                for(let board in this.boardrooms)
+                {
+                    if(board.id == reser.boardroom_id)
+                    {
+                        boardroomName = board.name;
+                    }
+                }
+
+                for(let hour in this.hours)
+                {
+                    if(hour.start == reser.start.substring(0, 5))
+                    {
+                        this.idStart = hour.id;
+                    }
+                    if(hour.end == reser.end.substring(0, 5))
+                    {
+                        this.idStart = hour.id;
+                    }
+                }
+
+                for(let i = this.idStart; i <= this.idEnd; i++)
+                {
+                    console.log(this.$refs[''+boardroomName+''+i])
+                    this.$refs[''+boardroomName+''+i][0].element.classList.value = 'table-danger';
+                }
+            }*/
+        },
     },
     mounted(){
-        this.getDate()
+        this.getDate();
         this.getBoardrooms();
     },
 }
