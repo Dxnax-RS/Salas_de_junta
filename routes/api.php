@@ -23,3 +23,4 @@ Route::get('boardrooms', [BoardroomController::class, 'index']);
 Route::get('date', [BoardroomController::class, 'getDate']);
 Route::get('reservation/all', [BoardroomController::class, 'getAllReservations']);
 Route::get('reservation/{date}', [BoardroomController::class, 'getAllReservationsOfDate']);
+Route::post('reservation', [BoardroomController::class, 'store']);

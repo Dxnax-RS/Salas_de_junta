@@ -22,7 +22,7 @@
         <div class="card mx-auto" style="width: 75rem;">
             <div class="card-body">
                 <div class="input-group mb-3">
-                    <input type="date" class="form-control" v-model="userDate">
+                    <input type="date" class="form-control" v-model="reservation.date">
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" @click="markSchedule()">search</button>
                     </div>
@@ -39,11 +39,11 @@
                     </select>
                     <label for="startSelect" class="form-label">Hora de inicio</label>
                     <select id="startSelect" class="form-select" aria-label="Default select example" v-model="reservation.start">
-                        <option v-for="hour in hours" v-bind:value="hour.start">{{ hour.start }}</option>
+                        <option v-for="hour in hours" v-bind:value="hour.start + ':00'">{{ hour.start }}</option>
                     </select>
                     <label for="endSelect" class="form-label">Hora de fin</label>
                     <select id="endSelect" class="form-select" aria-label="Default select example" v-model="reservation.end">
-                        <option v-for="hour in hours" v-bind:value="hour.end">{{ hour.end }}</option>
+                        <option v-for="hour in hours" v-bind:value="hour.end + ':00'">{{ hour.end }}</option>
                     </select>
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" @click="submitReservation()">search</button>
@@ -157,16 +157,15 @@ export default {
                     id: 18
                 },
             ],
-            userDate: '',
             reservationsForDay: [],
             idStart: -1,
             idEnd: -1,
             reservation: {
-                boardroom_id: 0,
-                user_id: 1,
-                date: this.userDate,
-                start: "",
-                end: ""
+                "boardroom_id": "",
+                "user_id": "1",
+                "date": "",
+                "start": "",
+                "end": ""
             },
 
         }
@@ -196,8 +195,9 @@ export default {
                 return;
             }
 
-            let reservations = await axios.get('/api/reservation/'+this.userDate);
-            this.reservationsForDay = reservations
+            let reservations = await axios.get('/api/reservation/'+this.reservation.date);
+            this.reservationsForDay = reservations;
+
             reservations.data.forEach(reser => {
                 
                 let boardroomName
@@ -208,8 +208,6 @@ export default {
                         boardroomName = board.name;
                     }
                 });
-                
-                console.log(reser.start.substring(0, 5));
 
                 this.hours.forEach(hour => {
                     if(hour.start === reser.start.substring(0, 5))
@@ -222,18 +220,50 @@ export default {
                     }
                 });
 
-                console.log(this.idEnd)
-
                 for(let i = this.idStart; i <= this.idEnd; i++)
                 {
-                    console.log(`${boardroomName}${i}`)
-                    document.getElementById(boardroomName+i).className = 'table-danger'
-                   
+                    document.getElementById(boardroomName+i).className = 'table-danger';
                 }
             });
-            let form = document.getElementById("showForm")
-                form.style.display = "block";
+            let form = document.getElementById("showForm");
+            form.style.display = "block";
         },
+
+        validateReservation(){
+            let valid = {v : true}
+            this.reservationsForDay.data.forEach(reserv => {
+
+                if(reserv.boardroom_id != this.reservation.boardroom_id && valid.v)
+                {
+                    return;
+                }
+
+                if(this.reservation.start > reserv.start)
+                {
+                    if(this.reservation.start < reserv.end)
+                    {
+                        valid.v = false;
+                    }
+                }
+                else if(this.reservation.end > reserv.start)
+                {
+                    valid.v = false;
+                }
+            });
+
+            return valid.v;
+        },
+
+        async submitReservation()
+        {
+            if(!this.validateReservation())
+            {
+                return;
+            }
+            await axios.post("/api/reservation", this.reservation);
+            this.markSchedule();
+        },
+
     },
     mounted(){
         this.getDate();

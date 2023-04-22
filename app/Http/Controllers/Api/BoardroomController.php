@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Boardroom;
 use App\Models\Reservation;
+use App\Http\Requests\ReservationRequest;
 use Carbon\Carbon;
 
 class BoardroomController extends Controller
@@ -39,5 +40,17 @@ class BoardroomController extends Controller
         $user_date = $request->route('date');
         $dates = DB::table('reservations')->where('date', $user_date)->get();
         return $dates;
+    }
+
+    public function store(ReservationRequest $request)
+    {
+        $reservation = new Reservation;
+        $reservation->boardroom_id = $request->boardroom_id;
+        $reservation->user_id = $request->user_id;
+        $reservation->date = $request->date;
+        $reservation->start = $request->start;
+        $reservation->end = $request->end;
+        $reservation->save();
+        return 'success';
     }
 }
