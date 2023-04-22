@@ -29,6 +29,28 @@
                 </div>
             </div>
         </div>
+
+        <div class="card mx-auto" style="width: 75rem;" id="showForm">
+            <div class="card-body">
+                <div class="mb-3 row">
+                    <label for="boardSelect" class="form-label">Sala de juntas</label>
+                    <select id="boardSelect" class="form-select" aria-label="Default select example" v-model="reservation.boardroom_id">
+                        <option v-for="board in boardrooms.data" v-bind:value="board.id">{{ board.name }}</option>
+                    </select>
+                    <label for="startSelect" class="form-label">Hora de inicio</label>
+                    <select id="startSelect" class="form-select" aria-label="Default select example" v-model="reservation.start">
+                        <option v-for="hour in hours" v-bind:value="hour.start">{{ hour.start }}</option>
+                    </select>
+                    <label for="endSelect" class="form-label">Hora de fin</label>
+                    <select id="endSelect" class="form-select" aria-label="Default select example" v-model="reservation.end">
+                        <option v-for="hour in hours" v-bind:value="hour.end">{{ hour.end }}</option>
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" @click="submitReservation()">search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -139,6 +161,14 @@ export default {
             reservationsForDay: [],
             idStart: -1,
             idEnd: -1,
+            reservation: {
+                boardroom_id: 0,
+                user_id: 1,
+                date: this.userDate,
+                start: "",
+                end: ""
+            },
+
         }
     },
     methods: {
@@ -147,6 +177,8 @@ export default {
                 .then((response) => {
                     this.date = response;
                 });
+            let form = document.getElementById("showForm")
+            form.style.display = "none";
         },
         async getBoardrooms(){
             axios.get('/api/boardrooms')
@@ -196,38 +228,11 @@ export default {
                 {
                     console.log(`${boardroomName}${i}`)
                     document.getElementById(boardroomName+i).className = 'table-danger'
-                    //this.$refs[''+boardroomName+''+i][0].element.classList.value = 'table-danger';
+                   
                 }
             });
-            /*for(let reser in reservations.data)
-            {
-                let boardroomName
-                for(let board in this.boardrooms)
-                {
-                    if(board.id == reser.boardroom_id)
-                    {
-                        boardroomName = board.name;
-                    }
-                }
-
-                for(let hour in this.hours)
-                {
-                    if(hour.start == reser.start.substring(0, 5))
-                    {
-                        this.idStart = hour.id;
-                    }
-                    if(hour.end == reser.end.substring(0, 5))
-                    {
-                        this.idStart = hour.id;
-                    }
-                }
-
-                for(let i = this.idStart; i <= this.idEnd; i++)
-                {
-                    console.log(this.$refs[''+boardroomName+''+i])
-                    this.$refs[''+boardroomName+''+i][0].element.classList.value = 'table-danger';
-                }
-            }*/
+            let form = document.getElementById("showForm")
+                form.style.display = "block";
         },
     },
     mounted(){
