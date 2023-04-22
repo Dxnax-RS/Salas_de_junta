@@ -24,9 +24,9 @@ class ReservationRequest extends FormRequest
         return [
             'boardroom_id' => 'required|numeric',
             'user_id' => 'required|numeric',
-            'date' => 'required|date_format:d/m/y|after_or_equal:'.date('d-m-Y'),
-            'start' => 'required|date_format:H:i',
-            'end' => 'required|date_format:H:i',
+            'date' => 'required|date_format:Y-m-d|after_or_equal:'.date('Y-m-d'),
+            'start' => 'required|date_format:H:i:s',
+            'end' => 'required|date_format:H:i:s',
         ];
     }
 }
