@@ -2,11 +2,11 @@
     <div>
         <div class="card mx-auto" style="width: 75rem;">
             <div class="card-body">
-                <table class="table table-sm" v-if="boardrooms.data">
+                <table class="table table-bordered table-sm" v-if="boardrooms.data">
                     <thead>
                         <tr>
-                            <th scope="col">Hora</th>
-                            <th v-for="boardroom in boardrooms.data" scope="col">{{ boardroom.name }}</th>
+                            <th scope="col" class="col-sm-1">Hora</th>
+                            <th v-for="boardroom in boardrooms.data" scope="col" class="col-sm-4">{{ boardroom.name }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -24,7 +24,7 @@
                 <div class="input-group mb-3">
                     <input type="date" class="form-control" v-model="reservation.date">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" @click="markSchedule()">search</button>
+                        <button class="btn btn-outline-secondary" type="button" @click="markSchedule()">Buscar</button>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                         <option v-for="hour in hours" v-bind:value="hour.end + ':00'">{{ hour.end }}</option>
                     </select>
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" @click="submitReservation()">search</button>
+                        <button class="btn btn-outline-secondary" type="button" @click="submitReservation()">Reservar</button>
                     </div>
                 </div>
             </div>
@@ -171,29 +171,34 @@ export default {
         }
     },
     methods: {
+
         async getDate(){
-            axios.get('/api/date')
-                .then((response) => {
-                    this.date = response;
-                });
-            let form = document.getElementById("showForm")
-            form.style.display = "none";
+            let response = await axios.get('/api/date');
+            this.date = response;
         },
+
         async getBoardrooms(){
-            axios.get('/api/boardrooms')
-                .then((response) => {
-                    this.boardrooms = response;
-                });
+            let response = await axios.get('/api/boardrooms')
+            this.boardrooms = response;
         },
-        async getReservation(){
-            let response
-            return response.data
+
+        cleanTable()
+        {
+            this.boardrooms.data.forEach(board => {
+                for(let i = 1; i <= 18; i++)
+                {
+                    document.getElementById(board.name+i).className = '';
+                }
+            });
         },
+
         async markSchedule(){
             if(this.userDate === "")
             {
                 return;
             }
+
+            this.cleanTable();
 
             let reservations = await axios.get('/api/reservation/'+this.reservation.date);
             this.reservationsForDay = reservations;
@@ -202,14 +207,14 @@ export default {
                 
                 let boardroomName
 
-                this.boardrooms.data.forEach(board => {
+                this.boardrooms.data.forEach(board => { //------------Gets the boardrooms names------------------
                     if(board.id == reser.boardroom_id)
                     {
                         boardroomName = board.name;
                     }
                 });
 
-                this.hours.forEach(hour => {
+                this.hours.forEach(hour => { //------------Gets the id's of the hours----------------
                     if(hour.start === reser.start.substring(0, 5))
                     {
                         this.idStart = hour.id;
@@ -220,7 +225,7 @@ export default {
                     }
                 });
 
-                for(let i = this.idStart; i <= this.idEnd; i++)
+                for(let i = this.idStart; i <= this.idEnd; i++) //--------Changes the table cells to red color-------------------
                 {
                     document.getElementById(boardroomName+i).className = 'table-danger';
                 }
@@ -231,6 +236,23 @@ export default {
 
         validateReservation(){
             let valid = {v : true}
+
+            if(this.reservation.start > this.reservation.end)
+            {
+                return false;
+            }
+
+            let sumOfTime = this.hours.find((hour)=>{
+                    return hour.end == this.reservation.end.substring(0, 5)
+            }).id - this.hours.find((hour)=>{
+                    return hour.start == this.reservation.start.substring(0, 5)
+            }).id
+
+            if(sumOfTime > 4)
+            {
+                return false;
+            }
+
             this.reservationsForDay.data.forEach(reserv => {
 
                 if(reserv.boardroom_id != this.reservation.boardroom_id && valid.v)
@@ -264,10 +286,16 @@ export default {
             this.markSchedule();
         },
 
+        hideForm(){
+            let form = document.getElementById("showForm")
+            form.style.display = "none";
+        }
+
     },
     mounted(){
         this.getDate();
         this.getBoardrooms();
+        this.hideForm();
     },
 }
 </script>
